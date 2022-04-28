@@ -1,10 +1,10 @@
-package com.visma.warehouse;
+package com.visma.warehouseApp;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class FirstTaskApplicationTests {
+class WarehouseControllerTests {
 
 	@Test
 	void contextLoads() {

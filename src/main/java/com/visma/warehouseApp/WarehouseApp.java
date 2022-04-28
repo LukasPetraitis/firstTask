@@ -1,13 +1,13 @@
-package com.visma.warehouse;
+package com.visma.warehouseApp;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class FirstTaskApplication {
+public class WarehouseApp {
 
 	public static void main(String[] args) {
-		SpringApplication.run(FirstTaskApplication.class, args);
+		SpringApplication.run(WarehouseApp.class, args);
 	}
 
 }
