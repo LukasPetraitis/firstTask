@@ -1,4 +1,4 @@
-package com.example.firstTask;
+package com.visma.warehouse;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

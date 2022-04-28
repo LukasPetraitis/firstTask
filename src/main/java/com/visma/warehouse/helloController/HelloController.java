@@ -1,4 +1,4 @@
-package com.example.firstTask.helloController;
+package com.visma.warehouse.helloController;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
