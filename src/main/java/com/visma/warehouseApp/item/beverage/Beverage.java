@@ -1,9 +1,10 @@
 package com.visma.warehouseApp.item.beverage;
 
 import com.visma.warehouseApp.item.Item;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-
+@Component
 public abstract class Beverage extends Item {
 
     private double quantity;

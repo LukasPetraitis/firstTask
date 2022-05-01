@@ -1,7 +1,9 @@
 package com.visma.warehouseApp.item;
 
-import java.math.BigDecimal;
+import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+@Component
 public abstract class Item {
     private BigDecimal price;
     private String name;
@@ -39,4 +41,5 @@ public abstract class Item {
     public void setDescription(String description) {
         this.description = description;
     }
+
 }

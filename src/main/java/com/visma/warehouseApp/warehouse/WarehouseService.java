@@ -10,9 +10,9 @@ import java.util.Set;
 @Scope("singleton")
 public class WarehouseService {
 
-    private final WarehouseDAO warehouseDAO;
+    private final WarehouseRepository warehouseDAO;
 
-    public WarehouseService(WarehouseDAO warehouseDAO) {
+    public WarehouseService(WarehouseRepository warehouseDAO) {
         this.warehouseDAO = warehouseDAO;
     }
 

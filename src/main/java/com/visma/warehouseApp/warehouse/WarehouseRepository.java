@@ -17,16 +17,10 @@ import java.util.stream.Stream;
 @Scope("singleton")
 public class WarehouseRepository implements WarehouseDAO{
 
-    static{
-        itemList = Stream.of(
-                new WaterBottle(new BigDecimal("0.98"), "Neptunas", "Neptuno Vanduo", 0.5))
-                    .collect(Collectors.toSet());
-    }
-
-    private static Set<Item> itemList;
-
     @Override
     public Set<Item> getItems() {
-        return itemList;
+        return Stream.of(
+                new WaterBottle(new BigDecimal("0.98"), "Neptunas", "Neptuno Vanduo", 0.5))
+                    .collect(Collectors.toSet());
     }
 }
