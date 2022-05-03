@@ -9,8 +9,8 @@ public class WaterBottle extends NonAlcoholBeverage {
     public WaterBottle() {
     }
 
-    public WaterBottle(BigDecimal price, String name, String description, double quantity) {
-        super(price, name, description, quantity);
+    public WaterBottle(int id, BigDecimal price, String name, String description, int amountInStorage, double quantity) {
+        super(id, price, name, description,amountInStorage, quantity);
     }
 
 

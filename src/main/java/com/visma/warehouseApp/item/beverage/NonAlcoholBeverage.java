@@ -9,7 +9,7 @@ public abstract class NonAlcoholBeverage extends Beverage{
     public NonAlcoholBeverage() {
     }
 
-    public NonAlcoholBeverage(BigDecimal price, String name, String description, double quantity) {
-        super(price, name, description, quantity);
+    public NonAlcoholBeverage(int id, BigDecimal price, String name, String description, int amountInStorage, double quantity) {
+        super(id, price, name, description, amountInStorage, quantity);
     }
 }

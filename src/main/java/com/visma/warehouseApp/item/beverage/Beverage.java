@@ -12,8 +12,8 @@ public abstract class Beverage extends Item {
     public Beverage() {
     }
 
-    public Beverage(BigDecimal price, String name, String description, double quantity) {
-        super(price, name, description);
+    public Beverage(int id, BigDecimal price, String name, String description, int amountInStorage, double quantity) {
+        super(id, price, name, description, amountInStorage);
         this.quantity = quantity;
     }
 
