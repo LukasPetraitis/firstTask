@@ -7,7 +7,7 @@ public class MechanicTool extends Tool{
     public MechanicTool() {
     }
 
-    public MechanicTool(int id, BigDecimal price, String name, String description, int amountInStorage) {
-        super(id, price, name, description, amountInStorage);
+    public MechanicTool(BigDecimal price, String name, String description, int amountInStorage) {
+        super(price, name, description, amountInStorage);
     }
 }

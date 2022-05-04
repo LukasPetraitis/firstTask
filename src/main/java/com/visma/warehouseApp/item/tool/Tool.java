@@ -9,7 +9,7 @@ public abstract class Tool extends Item {
     public Tool() {
     }
 
-    public Tool(int id, BigDecimal price, String name, String description, int amountInStorage) {
-        super(id, price, name, description, amountInStorage);
+    public Tool(BigDecimal price, String name, String description, int amountInStorage) {
+        super(price, name, description, amountInStorage);
     }
 }
