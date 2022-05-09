@@ -1,61 +1,44 @@
 package com.visma.warehouseApp.warehouse;
 
+import com.item.ItemDTO;
 import com.visma.warehouseApp.item.Item;
 
-import com.visma.warehouseApp.item.ItemDTO;
-
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-import java.util.Optional;
+import java.util.List;
 
 @RestController
 @RequestMapping("warehouse")
+@AllArgsConstructor
 public class WarehouseController {
 
-    private final WarehouseService warehouseService;
-
-    public WarehouseController(WarehouseService warehouseService) {
-        this.warehouseService = warehouseService;
-    }
-
-    @GetMapping("/hello")
-    public String getGreetings(){
-        return "hello this is warehouse!!";
-    }
+    private WarehouseService warehouseService;
 
     @GetMapping("/items")
-    public Map<Integer, Item> getItems(){
+    public List<ItemDTO> getItems(){
         return warehouseService.getItems();
     }
 
     @GetMapping("/items/{id}")
-    public Optional<Item> getItem(@PathVariable int id){
+    public Item getItem(@PathVariable int id){
         return warehouseService.getItemById(id);
     }
 
     @PostMapping("/newItem")
     public String createMechanicalTool(@RequestBody ItemDTO itemDTO) {
 
-        if(itemDTO.equals(null)){
+        if(itemDTO == null){
             return "error";
         }
-        else if(itemDTO.getItemType().equals("tool")){
-            warehouseService.saveTool(itemDTO);
-        }
-        else if(itemDTO.getItemType().equals("beverage")){
-            warehouseService.saveBeverage(itemDTO);
-        }
+
+        warehouseService.saveItem(itemDTO);
         return "item saved";
     }
 
-    @GetMapping("/Items/{id}/sell")
-    public String sellItem(@PathVariable int id){
-        if(warehouseService.getItemById(id).isPresent()){
-            warehouseService.sellItem(id);
-            return "item sold";
-        }
-        return "Bad request";
+    @GetMapping("/items/{id}/sell/{amount}")
+    public String sellItem(@PathVariable Integer id, @PathVariable Integer  amount){
+        return warehouseService.sellItem(id, amount);
     }
 
 }

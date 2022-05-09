@@ -1,60 +1,66 @@
 package com.visma.warehouseApp.warehouse;
 
+import com.item.ItemDTO;
 import com.visma.warehouseApp.item.Item;
-import com.visma.warehouseApp.item.beverage.WaterBottle;
-import com.visma.warehouseApp.item.ItemDTO;
-import com.visma.warehouseApp.item.tool.MechanicTool;
-import org.springframework.context.annotation.Scope;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.math.BigDecimal;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-
-import static com.visma.warehouseApp.item.ItemType.BEVERAGE;
-import static com.visma.warehouseApp.item.ItemType.TOOL;
 
 @Service
-@Scope("singleton")
+@AllArgsConstructor
 public class WarehouseService {
 
-    private final WarehouseRepository warehouseDAO;
+    private WarehouseDAO warehouseDAO;
 
-    public WarehouseService(WarehouseRepository warehouseDAO) {
-        this.warehouseDAO = warehouseDAO;
-    }
+    public List<ItemDTO> getItems(){
+        List<ItemDTO> itemsDTO = new ArrayList<ItemDTO>();
 
-    public Map<Integer, Item> getItems(){
-        return warehouseDAO.getItems();
-    }
+        for(Item i : warehouseDAO.findAll()){
+               ItemDTO item = new ItemDTO(i.getId(),
+                       i.getPrice().toString(),
+                       i.getName(),
+                       i.getDescription(),
+                       i.getAmountInStorage());
 
-    public void sellItem(int id){
-        warehouseDAO.updateAmount(id);
-    }
-
-    public Optional<Item> getItemById(int id) {
-        return warehouseDAO.getItemById(id);
-    }
-    public void saveBeverage(ItemDTO itemDTO) {
-            WaterBottle waterBottle = new WaterBottle(
-                    new BigDecimal(itemDTO.getPrice()),
-                    itemDTO.getName(),
-                    itemDTO.getDescription(),
-                    itemDTO.getAmountInStorage(),
-                    itemDTO.getQuantity());
-
-            warehouseDAO.save(waterBottle);
+               itemsDTO.add(item);
         }
+        return itemsDTO;
+    }
 
-    public void saveTool(ItemDTO itemDTO){
-        MechanicTool mechanicTool = new MechanicTool();
+    public Item getItemById(int id) {
+        return warehouseDAO.getById(id);
+    }
+    @Transactional
+    public String sellItem(Integer id, Integer amount){
+        Optional<Item> item = warehouseDAO.findById(id);
 
-        mechanicTool.setPrice(new BigDecimal(itemDTO.getPrice()));
-        mechanicTool.setName(itemDTO.getName());
-        mechanicTool.setDescription(itemDTO.getDescription());
-        mechanicTool.setAmountInStorage(itemDTO.getAmountInStorage());
+        if(item.isPresent()){
+            Integer inStorage = item.get().getAmountInStorage();
 
-        warehouseDAO.save(mechanicTool);
+            if(inStorage >= amount){
+
+                inStorage = inStorage - amount;
+                warehouseDAO.setAmountInStorageById(inStorage, id);
+                return "left in storage: " + inStorage;
+            }
+            return "not enough items in storage";
+        }
+        return "no item with such id";
+    }
+
+    public void saveItem(ItemDTO itemDTO){
+        Item item = new Item();
+
+        item.setPrice(new BigDecimal(itemDTO.getPrice()));
+        item.setName(itemDTO.getName());
+        item.setDescription(itemDTO.getDescription());
+        item.setAmountInStorage(itemDTO.getAmountInStorage());
+
+        warehouseDAO.save(item);
     }
 }
