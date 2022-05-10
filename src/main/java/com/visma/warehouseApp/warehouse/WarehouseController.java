@@ -15,8 +15,13 @@ public class WarehouseController {
 
     private WarehouseService warehouseService;
 
+    @GetMapping("/hello")
+    public String getHello(){
+        return "hello";
+    }
+
     @GetMapping("/items")
-    public List<ItemDTO> getItems(){
+    public List<Item> getItems(){
         return warehouseService.getItems();
     }
 
@@ -26,7 +31,7 @@ public class WarehouseController {
     }
 
     @PostMapping("/newItem")
-    public String createMechanicalTool(@RequestBody ItemDTO itemDTO) {
+    public String createItem(@RequestBody ItemDTO itemDTO) {
 
         if(itemDTO == null){
             return "error";
