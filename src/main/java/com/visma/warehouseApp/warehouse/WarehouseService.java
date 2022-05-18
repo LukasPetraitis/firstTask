@@ -1,8 +1,11 @@
 package com.visma.warehouseApp.warehouse;
 
 import com.item.ItemDTO;
+import com.visma.warehouseApp.exception.NoSuchItemException;
+import com.visma.warehouseApp.exception.NotEnoughInStorageException;
 import com.visma.warehouseApp.item.Item;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -16,7 +19,7 @@ public class WarehouseService {
 
     private WarehouseDAO warehouseDAO;
 
-    public List<Item> getItems(){
+    public List<Item> getItems() {
         return warehouseDAO.findAll();
     }
 
@@ -25,31 +28,38 @@ public class WarehouseService {
     }
 
     @Transactional
-    public String sellItem(Integer id, Integer amount){
+    public String sellItem(Integer id, Integer soldAmount) throws NoSuchItemException, NotEnoughInStorageException {
         Optional<Item> item = warehouseDAO.findById(id);
 
-        if(item.isPresent()){
-            Integer inStorage = item.get().getAmountInStorage();
-
-            if(inStorage >= amount){
-
-                inStorage = inStorage - amount;
-                warehouseDAO.setAmountInStorageById(inStorage, id);
-                return "left in storage: " + inStorage;
-            }
-            return "not enough items in storage";
+        if (item.isEmpty()) {
+            throw new NoSuchItemException();
         }
-        return "no item with such id";
+
+        Integer inStorage = item.get().getAmountInStorage();
+
+        if (inStorage < soldAmount) {
+            throw new NotEnoughInStorageException();
+        }
+
+        inStorage = inStorage - soldAmount;
+
+        warehouseDAO.setAmountInStorageById(inStorage, id);
+        return "left in storage: " + inStorage;
     }
 
-    public Item saveItem(ItemDTO itemDTO){
+    public Item saveItem(ItemDTO itemDTO) {
         Item item = new Item();
 
+        // biblioteka properties setinimui
+        BeanUtils.copyProperties(itemDTO, item);
+
+        // ir nebereikia daryti sitaip vienodu tipu kintamiesiems
         item.setPrice(new BigDecimal(itemDTO.getPrice()));
-        item.setName(itemDTO.getName());
-        item.setDescription(itemDTO.getDescription());
-        item.setAmountInStorage(itemDTO.getAmountInStorage());
 
         return warehouseDAO.save(item);
+    }
+
+    public boolean isItemExistsById(int id) {
+        return warehouseDAO.existsById(id);
     }
 }

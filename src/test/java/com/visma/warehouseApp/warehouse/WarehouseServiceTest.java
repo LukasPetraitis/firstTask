@@ -1,17 +1,18 @@
 package com.visma.warehouseApp.warehouse;
 
 import com.item.ItemDTO;
+import com.visma.warehouseApp.exception.NoSuchItemException;
+import com.visma.warehouseApp.exception.NotEnoughInStorageException;
 import com.visma.warehouseApp.item.Item;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -36,17 +37,7 @@ class WarehouseServiceTest {
 
         Mockito.when(warehouseDAO.getById(id)).thenReturn(item);
 
-        assertEquals(item.getName(),
-                warehouseService.getItemById(id).getName());
-
-        assertEquals(item.getPrice(), warehouseDAO.getById(id).getPrice());
-
-        assertEquals(item.getDescription(),
-                warehouseDAO.getById(id).getDescription());
-
-        assertEquals(item.getAmountInStorage(),
-                warehouseDAO.getById(id).getAmountInStorage());
-
+        assertEquals(item, warehouseService.getItemById(id));
     }
 
     @Test
@@ -56,48 +47,56 @@ class WarehouseServiceTest {
         Item item2 = new Item(3,new BigDecimal("5.99"), "earphones", "cheap chinese earphones", 10);
         Item item3 = new Item(4,new BigDecimal("6.99"), "cup", "black cup", 15);
 
-        List<Item> items = new ArrayList<>(Arrays.asList(item1, item2, item3));
+        List<Item> items = List.of(item1, item2, item3);
 
-        Mockito.when(warehouseDAO.findAll()).thenReturn(items);
+        //      kaip nerasyti: Mockito.when(warehouseDAO.findAll()).thenReturn(items);
+        doReturn(items).when(warehouseDAO).findAll();
 
         assertEquals(items, warehouseService.getItems());
 
     }
 
     @Test
-    void sellItemSuccesTest(){
+    void sellItemSuccessTest() throws NoSuchItemException, NotEnoughInStorageException {
+        doReturn(Optional.of(item)).when(warehouseDAO).findById(eq(item.getId()));
 
-        Integer amount = 3;
+        Integer soldAmount = 3;
 
-        Mockito.doReturn(Optional.of(item)).when(warehouseDAO).findById(any());
+        String result = warehouseService.sellItem(item.getId(), soldAmount);
 
-        String result = warehouseService.sellItem(item.getId(), amount);
-
-        Mockito.verify(warehouseDAO).setAmountInStorageById(eq(7), any());
+        Mockito.verify(warehouseDAO).setAmountInStorageById(eq(7), eq(item.getId()));
 
         assertEquals("left in storage: 7", result);
     }
 
     @Test
-    void sellItemNotEnoughInStorageTest(){
-
-        Integer amount = 11;
+    void sellItemNotEnoughInStorageTest() throws NoSuchItemException, NotEnoughInStorageException {
 
         Mockito.when(warehouseDAO.findById(any())).thenReturn(Optional.of(item));
 
-        String result = warehouseService.sellItem(item.getId(), amount);
+        Integer soldAmount = 11;
 
-        assertEquals("not enough items in storage", result);
+        NotEnoughInStorageException thrown =
+                Assertions.assertThrows( NotEnoughInStorageException.class,
+                () -> { warehouseService.sellItem( eq( item.getId() ), soldAmount); }
+                 );
+
+        assertEquals("Not enough items in storage", thrown.getMessage());
+
     }
 
     @Test
-    void sellItemNoSuchIdTest(){
+    void sellItemNoSuchIdTest() {
 
         Mockito.when(warehouseDAO.findById(any())).thenReturn(Optional.empty());
 
-        String result = warehouseService.sellItem(anyInt(), 5);
+        NoSuchItemException thrown =
+                Assertions.assertThrows(
+                        NoSuchItemException.class,
+                        () -> { warehouseService.sellItem(anyInt(), 5); }
+                );
 
-        assertEquals("no item with such id", result);
+        assertEquals("No item with such id", thrown.getMessage());
     }
 
     @Test
@@ -112,10 +111,33 @@ class WarehouseServiceTest {
 
         Mockito.when(warehouseDAO.save(any(Item.class))).thenAnswer(i -> i.getArguments()[0]);
 
-        Item savedItem = warehouseService.saveItem(itemDto);
+        Item result = warehouseService.saveItem(itemDto);
 
-        Mockito.verify(warehouseDAO, times(1)).save(savedItem);
+        Mockito.verify(warehouseDAO, times(1))
+                .save(any(Item.class));
+
+        assertEquals(itemDto.getId(), result.getId());
+        assertEquals(itemDto.getAmountInStorage(), result.getAmountInStorage());
 
     }
 
+    @Test
+    void isItemExistsByIdTrueTest(){
+        Mockito
+                .when(warehouseDAO.existsById( eq(item.getId()) ))
+                .thenReturn(true);
+
+        assertTrue(warehouseService.isItemExistsById(item.getId()));
+
+    }
+
+    @Test
+    void isItemExistsByIdFalseTest(){
+        Mockito
+                .when(warehouseDAO.existsById(anyInt()))
+                .thenReturn(false);
+
+        assertFalse(warehouseService.isItemExistsById(anyInt()));
+
+    }
 }
