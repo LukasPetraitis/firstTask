@@ -12,7 +12,7 @@ import javax.persistence.Id;
 @Getter
 @Setter
 @ToString
-public class Shop {
+public class ShopActivity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -7,6 +7,7 @@ import com.visma.warehouseApp.item.Item;
 import com.visma.warehouseApp.user.entity.User;
 import com.visma.warehouseApp.user.UserRepository;
 import com.visma.warehouseApp.user.entity.UserRole;
+import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -18,7 +19,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.Base64Utils;
+import org.springframework.web.context.WebApplicationContext;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
@@ -29,6 +32,7 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.*;
 
 import static org.mockito.Mockito.doReturn;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -39,7 +43,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 class WarehouseControllerTest {
-
+    @Autowired
+    WebApplicationContext context;
     @MockBean
     UserRepository userRepository;
 
@@ -49,16 +54,15 @@ class WarehouseControllerTest {
     private MockMvc mockMvc;
     Item item;
     List<Item> items;
-    String itemDtoString;
-    ItemDTO itemDto;
+
     ObjectMapper objectMapper = new ObjectMapper();
 
     @PostConstruct
     void init() throws JsonProcessingException {
-
-        User user = new User(5, "user", "password", UserRole.USER);
-
-        Mockito.doReturn(eq(user)).when(userRepository.findByUsername("user"));
+        mockMvc = MockMvcBuilders
+                .webAppContextSetup(context)
+                .apply(springSecurity())
+                .build();
 
         item = new Item(
                 2,
@@ -67,33 +71,17 @@ class WarehouseControllerTest {
                 "tool for work",
                 10);
 
-        Item item1 = new Item(1, new BigDecimal("4.99"), "box", "wooden box", 5);
-        Item item2 = new Item(2, new BigDecimal("5.99"), "earphones", "cheap chinesse earphones", 10);
-        Item item3 = new Item(3, new BigDecimal("6.99"), "cup", "black cup", 15);
-
-        items = List.of(item1, item2, item3);
-
-        itemDto = new ItemDTO(
-                2,
-                "9.99",
-                "hammer",
-                "good old hammer",
-                10);
-
-
-
-        itemDtoString = objectMapper.writeValueAsString(itemDto);
     }
 
     @Test
+    @WithMockUser(username = "user", password = "password", roles = "USER")
     public void getItemIntegrationTest() throws Exception {
 
         doReturn(item).when(warehouseDAO).getById(eq(2));
         doReturn(true).when(warehouseDAO).existsById(eq(2));
 
         mockMvc
-            .perform( get("/warehouse/items/2").header(HttpHeaders.AUTHORIZATION,
-                            "Basic " + Base64Utils.encodeToString( "user:password".getBytes() )) )
+            .perform( get("/warehouse/items/2") )
             .andDo(print())
             .andExpect(status().isOk())
             .andExpect(content().json("{'id': 2, " +
@@ -119,6 +107,12 @@ class WarehouseControllerTest {
     @Test
     @WithMockUser(username = "user", password = "password", roles = "USER")
     public void getItemsIntegrationTest() throws Exception {
+
+        Item item1 = new Item(1, new BigDecimal("4.99"), "box", "wooden box", 5);
+        Item item2 = new Item(2, new BigDecimal("5.99"), "earphones", "cheap chinesse earphones", 10);
+        Item item3 = new Item(3, new BigDecimal("6.99"), "cup", "black cup", 15);
+
+        items = List.of(item1, item2, item3);
 
         doReturn(items).when(warehouseDAO).findAll();
 
@@ -179,7 +173,15 @@ class WarehouseControllerTest {
     @WithMockUser(username = "user", password = "password", roles = "USER")
     public void createItemWithExistingIdIntegrationTest() throws Exception {
 
-        // Nepavyko su doReturn
+        ItemDTO itemDto = new ItemDTO(
+                2,
+                "9.99",
+                "hammer",
+                "good old hammer",
+                10);
+
+        String itemDtoString= objectMapper.writeValueAsString(itemDto);
+
         Mockito
                 .when(warehouseDAO.existsById( eq(itemDto.getId()) ))
                 .thenReturn(true);
@@ -197,6 +199,15 @@ class WarehouseControllerTest {
     @WithMockUser(username = "user", password = "password", roles = "USER")
     public void createItemIntegrationTest() throws Exception {
 
+        ItemDTO itemDto = new ItemDTO(
+                2,
+                "9.99",
+                "hammer",
+                "good old hammer",
+                10);
+
+        String itemDtoString= objectMapper.writeValueAsString(itemDto);
+
         Mockito
             .when(warehouseDAO.save(ArgumentMatchers.any(Item.class)))
             .thenAnswer(i -> i.getArguments()[0]);
@@ -207,7 +218,7 @@ class WarehouseControllerTest {
 
 
         mockMvc
-                .perform(post("/warehouse/items")
+                .perform( post("/warehouse/items")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content( itemDtoString ))
                 .andDo(print())
@@ -230,9 +241,14 @@ class WarehouseControllerTest {
     @WithMockUser(username = "user", password = "password", roles = "USER")
     public void createItemWithNegativeAmountIntegrationTest() throws Exception {
 
-            itemDto.setAmountInStorage( -1 );
+        ItemDTO itemDto = new ItemDTO(
+                2,
+                "9.99",
+                "hammer",
+                "good old hammer",
+                -1);
+
             String itemDtoStringWithNegativeAmount = objectMapper.writeValueAsString(itemDto);
-            itemDto.setAmountInStorage( 10 );
 
         mockMvc
                 .perform(post("/warehouse/items")

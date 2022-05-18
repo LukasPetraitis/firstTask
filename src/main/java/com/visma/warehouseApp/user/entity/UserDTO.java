@@ -11,9 +11,17 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UserDTO {
 
+    private Integer id;
+
     private String username;
 
     private String password;
 
-    private UserRole userRole;
+    private String userRole;
+
+    public UserDTO(String username, String password, String userRole) {
+        this.username = username;
+        this.password = password;
+        this.userRole = userRole;
+    }
 }

@@ -5,6 +5,8 @@ import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -29,11 +31,11 @@ public class LoggerInterceptor implements HandlerInterceptor {
             Object handler)
         throws Exception {
 
-//        Shop shop = new Shop();
-//        shop.setUrl(request.getRequestURI());
-//        shop.setUsername(request.getUserPrincipal().getName());
-//
-//        shopActivityService.saveShopInfo(shop);
+        String username = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
 
         return true;
     }
