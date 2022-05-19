@@ -1,6 +1,6 @@
 package com.visma.warehouseApp;
 
-import com.visma.warehouseApp.shop.LoggerInterceptor;
+import com.visma.warehouseApp.userActivity.endpointInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -10,10 +10,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class Config implements WebMvcConfigurer {
 
     @Autowired
-    LoggerInterceptor loggerInterceptor;
+    endpointInterceptor endpointInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(loggerInterceptor);
+        registry.addInterceptor(endpointInterceptor);
     }
 }

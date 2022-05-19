@@ -4,10 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.item.ItemDTO;
 import com.visma.warehouseApp.item.Item;
-import com.visma.warehouseApp.user.entity.User;
 import com.visma.warehouseApp.user.UserRepository;
-import com.visma.warehouseApp.user.entity.UserRole;
-import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -15,12 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.util.Base64Utils;
 import org.springframework.web.context.WebApplicationContext;
 
 import javax.annotation.PostConstruct;
@@ -43,17 +38,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 class WarehouseControllerTest {
+
     @Autowired
     WebApplicationContext context;
     @MockBean
     UserRepository userRepository;
-
     @MockBean
     WarehouseDAO warehouseDAO;
     @Autowired
-    private MockMvc mockMvc;
+    MockMvc mockMvc;
     Item item;
-    List<Item> items;
+
 
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -112,7 +107,7 @@ class WarehouseControllerTest {
         Item item2 = new Item(2, new BigDecimal("5.99"), "earphones", "cheap chinesse earphones", 10);
         Item item3 = new Item(3, new BigDecimal("6.99"), "cup", "black cup", 15);
 
-        items = List.of(item1, item2, item3);
+        List<Item> items = List.of(item1, item2, item3);
 
         doReturn(items).when(warehouseDAO).findAll();
 

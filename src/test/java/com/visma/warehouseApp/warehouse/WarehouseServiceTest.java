@@ -4,6 +4,8 @@ import com.item.ItemDTO;
 import com.visma.warehouseApp.exception.NoSuchItemException;
 import com.visma.warehouseApp.exception.NotEnoughInStorageException;
 import com.visma.warehouseApp.item.Item;
+import com.visma.warehouseApp.user.UserRepository;
+import com.visma.warehouseApp.userActivity.UserActivityRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -18,10 +20,11 @@ import static org.mockito.Mockito.*;
 
 class WarehouseServiceTest {
 
-
     WarehouseDAO warehouseDAO = Mockito.mock(WarehouseDAO.class);
-
-    WarehouseService warehouseService = new WarehouseService(warehouseDAO);
+    UserRepository userRepository = Mockito.mock(UserRepository.class);
+    UserActivityRepository userActivityRepository = Mockito.mock(UserActivityRepository.class);
+    WarehouseService warehouseService =
+            new WarehouseService(warehouseDAO);
 
     Item item = new Item(
             2,
@@ -49,7 +52,6 @@ class WarehouseServiceTest {
 
         List<Item> items = List.of(item1, item2, item3);
 
-        //      kaip nerasyti: Mockito.when(warehouseDAO.findAll()).thenReturn(items);
         doReturn(items).when(warehouseDAO).findAll();
 
         assertEquals(items, warehouseService.getItems());
@@ -72,7 +74,10 @@ class WarehouseServiceTest {
     @Test
     void sellItemNotEnoughInStorageTest() throws NoSuchItemException, NotEnoughInStorageException {
 
-        Mockito.when(warehouseDAO.findById(any())).thenReturn(Optional.of(item));
+        Mockito.when(
+                warehouseDAO.findById(any()))
+                .thenReturn(Optional.of(item)
+                );
 
         Integer soldAmount = 11;
 
