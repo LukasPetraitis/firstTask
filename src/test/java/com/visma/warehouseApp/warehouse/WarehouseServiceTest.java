@@ -5,10 +5,15 @@ import com.visma.warehouseApp.exception.NoSuchItemException;
 import com.visma.warehouseApp.exception.NotEnoughInStorageException;
 import com.visma.warehouseApp.item.Item;
 import com.visma.warehouseApp.user.UserRepository;
+import com.visma.warehouseApp.user.entity.User;
+import com.visma.warehouseApp.userActivity.UserActivity;
 import com.visma.warehouseApp.userActivity.UserActivityRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -24,7 +29,7 @@ class WarehouseServiceTest {
     UserRepository userRepository = Mockito.mock(UserRepository.class);
     UserActivityRepository userActivityRepository = Mockito.mock(UserActivityRepository.class);
     WarehouseService warehouseService =
-            new WarehouseService(warehouseDAO);
+            new WarehouseService(warehouseDAO, userRepository, userActivityRepository);
 
     Item item = new Item(
             2,
@@ -60,6 +65,12 @@ class WarehouseServiceTest {
 
     @Test
     void sellItemSuccessTest() throws NoSuchItemException, NotEnoughInStorageException {
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
         doReturn(Optional.of(item)).when(warehouseDAO).findById(eq(item.getId()));
 
         Integer soldAmount = 3;

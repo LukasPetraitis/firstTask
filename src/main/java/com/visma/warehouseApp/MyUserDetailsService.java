@@ -1,6 +1,6 @@
-package com.visma.warehouseApp.user;
+package com.visma.warehouseApp;
 
-import com.visma.warehouseApp.user.entity.MyUserPrincipal;
+import com.visma.warehouseApp.user.UserRepository;
 import com.visma.warehouseApp.user.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,7 +16,7 @@ public class MyUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException{
         User user = userRepository.findByUsername(username);
-        if (user == null) {
+        if (user == null){
             throw new UsernameNotFoundException(username);
         }
         return new MyUserPrincipal(user);

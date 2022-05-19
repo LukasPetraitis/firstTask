@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.item.ItemDTO;
 import com.visma.warehouseApp.item.Item;
 import com.visma.warehouseApp.user.UserRepository;
+import com.visma.warehouseApp.user.entity.User;
+import com.visma.warehouseApp.user.entity.UserRole;
+import com.visma.warehouseApp.userActivity.UserActivityRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -12,10 +15,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.util.Base64Utils;
 import org.springframework.web.context.WebApplicationContext;
 
 import javax.annotation.PostConstruct;
@@ -26,21 +35,20 @@ import java.util.Optional;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.*;
 
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 class WarehouseControllerTest {
-
     @Autowired
     WebApplicationContext context;
+    @MockBean
+    UserActivityRepository userActivityRepository;
     @MockBean
     UserRepository userRepository;
     @MockBean
@@ -48,12 +56,12 @@ class WarehouseControllerTest {
     @Autowired
     MockMvc mockMvc;
     Item item;
-
-
+    ItemDTO itemDto;
     ObjectMapper objectMapper = new ObjectMapper();
 
     @PostConstruct
     void init() throws JsonProcessingException {
+
         mockMvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())
@@ -64,6 +72,13 @@ class WarehouseControllerTest {
                 new BigDecimal("9.99"),
                 "screwdriwer",
                 "tool for work",
+                10);
+
+        itemDto = new ItemDTO(
+                2,
+                "9.99",
+                "hammer",
+                "good old hammer",
                 10);
 
     }
@@ -123,6 +138,12 @@ class WarehouseControllerTest {
     @Test
     @WithMockUser(username = "user", password = "password", roles = "USER")
     public void sellItemSuccessIntegrationTest() throws Exception {
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
         doReturn(Optional.of(item)).when(warehouseDAO).findById(eq(item.getId()));
 
         Integer soldAmount = 3;
@@ -168,14 +189,7 @@ class WarehouseControllerTest {
     @WithMockUser(username = "user", password = "password", roles = "USER")
     public void createItemWithExistingIdIntegrationTest() throws Exception {
 
-        ItemDTO itemDto = new ItemDTO(
-                2,
-                "9.99",
-                "hammer",
-                "good old hammer",
-                10);
-
-        String itemDtoString= objectMapper.writeValueAsString(itemDto);
+        String itemDtoString = objectMapper.writeValueAsString(itemDto);
 
         Mockito
                 .when(warehouseDAO.existsById( eq(itemDto.getId()) ))
@@ -194,14 +208,7 @@ class WarehouseControllerTest {
     @WithMockUser(username = "user", password = "password", roles = "USER")
     public void createItemIntegrationTest() throws Exception {
 
-        ItemDTO itemDto = new ItemDTO(
-                2,
-                "9.99",
-                "hammer",
-                "good old hammer",
-                10);
-
-        String itemDtoString= objectMapper.writeValueAsString(itemDto);
+        String itemDtoString = objectMapper.writeValueAsString(itemDto);
 
         Mockito
             .when(warehouseDAO.save(ArgumentMatchers.any(Item.class)))
@@ -213,7 +220,7 @@ class WarehouseControllerTest {
 
 
         mockMvc
-                .perform( post("/warehouse/items")
+                .perform(post("/warehouse/items")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content( itemDtoString ))
                 .andDo(print())
@@ -236,14 +243,9 @@ class WarehouseControllerTest {
     @WithMockUser(username = "user", password = "password", roles = "USER")
     public void createItemWithNegativeAmountIntegrationTest() throws Exception {
 
-        ItemDTO itemDto = new ItemDTO(
-                2,
-                "9.99",
-                "hammer",
-                "good old hammer",
-                -1);
-
+            itemDto.setAmountInStorage( -1 );
             String itemDtoStringWithNegativeAmount = objectMapper.writeValueAsString(itemDto);
+            itemDto.setAmountInStorage( 10 );
 
         mockMvc
                 .perform(post("/warehouse/items")

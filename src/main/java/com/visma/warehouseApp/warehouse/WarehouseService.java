@@ -9,7 +9,6 @@ import com.visma.warehouseApp.user.entity.User;
 import com.visma.warehouseApp.userActivity.UserActivity;
 import com.visma.warehouseApp.userActivity.UserActivityRepository;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,15 +21,14 @@ import java.util.Optional;
 
 @Service
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 public class WarehouseService {
 
     private WarehouseDAO warehouseDAO;
 
-//    private UserRepository userRepository;
-//
-//    private UserActivityRepository userActivityRepository;
+    private UserRepository userRepository;
+
+    private UserActivityRepository userActivityRepository;
 
     public List<Item> getItems() {
         return warehouseDAO.findAll();
@@ -45,13 +43,6 @@ public class WarehouseService {
 
         Optional<Item> item = warehouseDAO.findById(id);
 
-
-//        String username = SecurityContextHolder
-//                .getContext()
-//                .getAuthentication()
-//                .getName();
-
-//        User user = userRepository.findByUsername(username);
         if (item.isEmpty()) {
             throw new NoSuchItemException();
         }
@@ -64,15 +55,11 @@ public class WarehouseService {
 
         inStorage = inStorage - soldAmount;
 
-//        UserActivity userActivity = new UserActivity();
-//        userActivity.setUserActivity("Bought " + soldAmount + " of item with id: " + id);
-//        userActivity.setUser(user);
-
-//        userActivityRepository.save(userActivity);
         warehouseDAO.setAmountInStorageById(inStorage, id);
-
+        saveUserActivity(soldAmount, item.get());
         return "left in storage: " + inStorage;
     }
+
     @Transactional
     public Item saveItem(ItemDTO itemDTO) {
         Item item = new Item();
@@ -82,9 +69,28 @@ public class WarehouseService {
         item.setPrice(new BigDecimal(itemDTO.getPrice()));
 
         return warehouseDAO.save(item);
+
+
     }
 
     public boolean isItemExistsById(int id) {
         return warehouseDAO.existsById(id);
+    }
+
+    public void saveUserActivity(Integer soldAmount, Item item){
+
+        String username = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByUsername("username");
+        UserActivity userActivity = new UserActivity();
+
+        userActivity.setBought(soldAmount);
+        userActivity.setItem(item);
+        userActivity.setUser(user);
+//
+//        userActivityRepository.save(userActivity);
     }
 }

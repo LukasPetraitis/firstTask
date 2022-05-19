@@ -1,5 +1,7 @@
-package com.visma.warehouseApp.user.entity;
+package com.visma.warehouseApp;
 
+import com.visma.warehouseApp.user.entity.User;
+import com.visma.warehouseApp.user.entity.UserRole;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -49,5 +51,7 @@ public class MyUserPrincipal implements UserDetails {
         return true;
     }
 
-    public User getUser() { return user; }
+    public User getUser() {
+        return user;
+    }
 }

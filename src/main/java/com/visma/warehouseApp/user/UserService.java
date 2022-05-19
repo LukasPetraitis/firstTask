@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import java.util.List;
 
 @Service
 public class UserService {
@@ -17,15 +17,18 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Transactional
-    public User createUser(UserDTO userDTO){
+    public void createUser(UserDTO userDTO){
         User user = new User();
 
-        user.setUsername( userDTO.getUsername() );
-        user.setPassword(passwordEncoder.encode( userDTO.getPassword() ));
-        user.setUserRole( UserRole.USER.toString() );
+        user.setUsername(userDTO.getUsername());
+        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        user.setUserRole(UserRole.USER.toString());
 
-        return userRepository.save(user);
+        userRepository.save(user);
+
     }
 
+    public List<User> getUsers() {
+        return userRepository.findAll();
+    }
 }
